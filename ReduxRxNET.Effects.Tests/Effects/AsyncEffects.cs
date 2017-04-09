@@ -7,19 +7,30 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections;
+using System.Reactive.Threading.Tasks;
 
 namespace ReduxRxNET.SideEffects.Tests.Effects
 {
   public static class AsyncEffects
   {
+    //[SideEffect(typeof(AsyncReducer.LoadAction))]
+    //internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
+    //{
+    //  return actions
+    //   .Select(loadAction => GetDataAsync(shouldFail: false))
+    //   .Switch()
+    //   .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
+    //   .Catch(Observable.Return(new AsyncReducer.FailAction()));
+    //}
+
     [SideEffect(typeof(AsyncReducer.LoadAction))]
     internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
     {
       return actions
-       .Select(loadAction => GetDataAsync(shouldFail: false))
-       .Switch()
-       .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
-       .Catch(Observable.Return(new AsyncReducer.FailAction()));
+       .Select(loadAction => GetDataAsync(shouldFail: false).ToObservable()
+         .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
+         .Catch(Observable.Return(new AsyncReducer.FailAction())))
+       .Switch();
     }
 
     //[SideEffect(typeof(AsyncReducer.LoadAction))]
