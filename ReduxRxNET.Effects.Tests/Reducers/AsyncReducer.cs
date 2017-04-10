@@ -37,7 +37,7 @@ namespace ReduxRxNET.SideEffects.Tests.Reducers
         );
       }
 
-      if (action is LoadAction)
+      if (action is FailAction)
       {
         return new ApplicationState(
           loading: false,
@@ -49,7 +49,15 @@ namespace ReduxRxNET.SideEffects.Tests.Reducers
     }
 
     //actions
-    internal class LoadAction { }
+    internal class LoadAction {
+      private readonly bool shouldFail;
+      public bool ShouldFail => shouldFail;
+
+      public LoadAction(bool shouldFail)
+      {
+        this.shouldFail = shouldFail;
+      }
+    }
     internal class SuccessAction {
       private readonly ImmutableList<int> data;
       public ImmutableList<int> Data => data;

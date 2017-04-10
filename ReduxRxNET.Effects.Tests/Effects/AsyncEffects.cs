@@ -13,7 +13,7 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
 {
   public static class AsyncEffects
   {
-    //[SideEffect(typeof(AsyncReducer.LoadAction))]
+    //[SideEffect(typeof(AsyncReducer.LoadAction))] //bad implementation
     //internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
     //{
     //  return actions
@@ -27,31 +27,20 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
     {
       return actions
-       .Select(loadAction => GetDataAsync(shouldFail: false).ToObservable()
+       .OfType<AsyncReducer.LoadAction>()
+       .Select(loadAction => GetDataAsync(loadAction.ShouldFail).ToObservable()
          .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
          .Catch(Observable.Return(new AsyncReducer.FailAction())))
        .Switch();
     }
 
-    //[SideEffect(typeof(AsyncReducer.LoadAction))]
-    internal static IObservable<object> OnLoadFail(IObservable<object> actions)
-    {
-      return actions
-       .Select(loadAction => GetDataAsync(shouldFail: true))
-       .Switch()
-       .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
-       .Catch(Observable.Return(new AsyncReducer.FailAction()));
-      //.Catch<object, Exception>( ex => Observable.Return(new AsyncReducer.FailAction()) );
-    }
-
     private static async Task<IEnumerable<int>> GetDataAsync(bool shouldFail)
     {
+      await Task.Delay(TimeSpan.FromMilliseconds(100));
       if (shouldFail)
       {
         throw new Exception("GetDataAsync failed as requested");
       }
-
-      await Task.Delay(TimeSpan.FromMilliseconds(100));
       return new List<int> { 1, 8, 2 };
     }
 
