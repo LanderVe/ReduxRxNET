@@ -81,7 +81,7 @@ namespace ReduxRxNET.SideEffects.Tests
         ),
         new AsyncReducer.ApplicationState(
           loading: false,
-          data: ImmutableList.CreateRange<int>(new List<int> { 1, 8, 2 })
+          data: ImmutableList.CreateRange<int>(new List<int> {0, 1, 8, 2 })
         )
       };
 
@@ -197,7 +197,7 @@ namespace ReduxRxNET.SideEffects.Tests
         ),
         new AsyncReducer.ApplicationState( //succeeds
           loading: false,
-          data: ImmutableList.CreateRange<int>(new List<int> { 1, 8, 2 })
+          data: ImmutableList.CreateRange<int>(new List<int> {2, 1, 8, 2 })
         )
       };
 
@@ -211,12 +211,12 @@ namespace ReduxRxNET.SideEffects.Tests
       var sub = store.GetState().Subscribe(val => results.Add(val));
 
       //Act
-      store.Dispatch(new AsyncReducer.LoadAction(shouldFail: true));
+      store.Dispatch(new AsyncReducer.LoadAction(shouldFail: true, flag: 1));
 
       // wait for the effect, the initial value has already passed, 2 remaining
-      await store.GetState().Take(2).Timeout(TimeSpan.FromMilliseconds(3000));
+      await store.GetState().Take(2).Timeout(TimeSpan.FromMilliseconds(300));
 
-      store.Dispatch(new AsyncReducer.LoadAction(shouldFail: false));
+      store.Dispatch(new AsyncReducer.LoadAction(shouldFail: false, flag: 2));
 
       // wait for the effect, the initial value has already passed, 2 remaining
       await store.GetState().Take(2).Timeout(TimeSpan.FromMilliseconds(300));
@@ -225,6 +225,57 @@ namespace ReduxRxNET.SideEffects.Tests
       Assert.AreEqual(expected.Count, results.Count);
       var comparer = new AsyncEffects.AsyncReducerApplicationStateComparer();
       CollectionAssert.AreEqual(expected, results, comparer);
+
+      sub.Dispose();
+    }
+
+    [TestMethod]
+    public async Task SideEffect_LoadActionMulti_CancellesPrevious()
+    {
+      //Arrange
+      var results = new List<AsyncReducer.ApplicationState>();
+      var expected = new List<AsyncReducer.ApplicationState> {
+        new AsyncReducer.ApplicationState( //initial
+          loading: false,
+          data: ImmutableList<int>.Empty
+        ),
+        new AsyncReducer.ApplicationState( //after load dispatch
+          loading: true,
+          data: ImmutableList<int>.Empty
+        ),
+        new AsyncReducer.ApplicationState( //after load dispatch, cancel previous
+          loading: true,
+          data: ImmutableList<int>.Empty
+        ),
+        new AsyncReducer.ApplicationState( //succeeds
+          loading: false,
+          data: ImmutableList.CreateRange<int>(new List<int> {2, 1, 8, 2 })
+        )
+      };
+
+      var effectsManager = new SideEffectsManager<AsyncReducer.ApplicationState>();
+      var store = new Store<AsyncReducer.ApplicationState>(new AsyncReducer(), null, effectsManager);
+
+      effectsManager.AddEffectsClass(typeof(AsyncEffects));
+      effectsManager.Start();
+
+      //completes after 3 elements, so we can await it
+      var sub = store.GetState().Subscribe(val => results.Add(val));
+
+      //Act
+      store.Dispatch(new AsyncReducer.LoadAction(shouldFail: false, flag: 1));
+      await Task.Delay(TimeSpan.FromMilliseconds(10));
+      //should cancel previous
+      store.Dispatch(new AsyncReducer.LoadAction(shouldFail: false, flag: 2));
+
+      // wait for the effect, the load (replay) and success (from effect)
+      await store.GetState().Take(2).Timeout(TimeSpan.FromMilliseconds(300));
+
+      //Assert
+      Assert.AreEqual(expected.Count, results.Count);
+      var comparer = new AsyncEffects.AsyncReducerApplicationStateComparer();
+      CollectionAssert.AreEqual(expected, results, comparer);
+      Assert.AreEqual(2, results.Last().Data[0]);
 
       sub.Dispose();
     }

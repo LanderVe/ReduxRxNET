@@ -5,57 +5,77 @@ using System.Text;
 
 namespace ReduxRxNET.Store.Tests.Reducers
 {
-  class ComplexObjectReducer : Reducer<ComplexObjectReducer.ApplicationState>
+  class CombinedObjectReducer : Reducer<CombinedObjectReducer.ApplicationState>
   {
-    public static readonly ApplicationState initialState = new ApplicationState(
-      ui: new UIState(isVisible: false),
-      data: new DataState(
-         entities1: ImmutableSortedDictionary<int, Entitiy1>.Empty,
-         entities2: ImmutableSortedDictionary<int, Entitiy2>.Empty
-      )
-    );
+    private UIReducer uiReducer = new UIReducer();
+    private DataReducer dataReducer = new DataReducer();
 
+    //parent reduce
     public override ApplicationState Reduce(ApplicationState state = null, object action = null)
     {
-      if (state == null)
-        return initialState;
-
-      var toggleVisibilityAction = action as ToggleVisibilityAction;
-      if (toggleVisibilityAction != null)
-      {
-        return new ApplicationState(
-          ui: new UIState(isVisible: !state.UI.IsVisible),
-          data: state.Data
+      var newState = new ApplicationState(
+          ui: uiReducer.Reduce(state?.UI, action),
+          data: dataReducer.Reduce(state?.Data, action)
         );
-      }
 
-      var addEntity1Action = action as AddEntity1Action;
-      if (addEntity1Action != null)
+      var hasChanged = state == null
+                       || state.UI != newState.UI
+                       || state.Data != newState.Data;
+
+      return hasChanged ? newState : state;
+    }
+
+    //child reducers
+    internal class UIReducer : Reducer<UIState>
+    {
+      public static readonly UIState initialState = new UIState(isVisible: false);
+      public override UIState Reduce(UIState state = null, object action = null)
       {
-        var newEntity1 = new Entitiy1(addEntity1Action.Id, addEntity1Action.Value);
-        return new ApplicationState(
-            ui: state.UI,
-            data: new DataState(
-              entities1: state.Data.Entities1.Add(addEntity1Action.Id, newEntity1),
-              entities2: state.Data.Entities2
-            )
-          );
-      }
+        if (state == null)
+          return initialState;
 
-      var addEntity2Action = action as AddEntity2Action;
-      if (addEntity2Action != null)
+        if (action is ToggleVisibilityAction)
+        {
+          return new UIState(isVisible: !state.IsVisible);
+        }
+
+        return state;
+      }
+    }
+
+    internal class DataReducer : Reducer<DataState>
+    {
+      public static readonly DataState initialState = new DataState(
+         entities1: ImmutableSortedDictionary<int, Entitiy1>.Empty,
+         entities2: ImmutableSortedDictionary<int, Entitiy2>.Empty
+      );
+      public override DataState Reduce(DataState state = null, object action = null)
       {
-        var newEntity2 = new Entitiy2(addEntity2Action.Id, addEntity2Action.Value);
-        return new ApplicationState(
-            ui: state.UI,
-            data: new DataState(
-              entities1: state.Data.Entities1,
-              entities2: state.Data.Entities2.Add(addEntity2Action.Id, newEntity2)
-            )
-          );
-      }
+        if (state == null)
+          return initialState;
 
-      return state;
+        var addEntity1Action = action as AddEntity1Action;
+        if (addEntity1Action != null)
+        {
+          var newEntity1 = new Entitiy1(addEntity1Action.Id, addEntity1Action.Value);
+          return new DataState(
+              entities1: state.Entities1.Add(addEntity1Action.Id, newEntity1),
+              entities2: state.Entities2
+            );
+        }
+
+        var addEntity2Action = action as AddEntity2Action;
+        if (addEntity2Action != null)
+        {
+          var newEntity2 = new Entitiy2(addEntity2Action.Id, addEntity2Action.Value);
+          return new DataState(
+              entities1: state.Entities1,
+              entities2: state.Entities2.Add(addEntity2Action.Id, newEntity2)
+            );
+        }
+
+        return state;
+      }
     }
 
     //actions

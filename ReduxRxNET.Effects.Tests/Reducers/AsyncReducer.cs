@@ -52,10 +52,13 @@ namespace ReduxRxNET.SideEffects.Tests.Reducers
     internal class LoadAction {
       private readonly bool shouldFail;
       public bool ShouldFail => shouldFail;
+      private readonly int flag;
+      public int Flag => flag;
 
-      public LoadAction(bool shouldFail)
+      public LoadAction(bool shouldFail, int flag = 0)
       {
         this.shouldFail = shouldFail;
+        this.flag = flag;
       }
     }
     internal class SuccessAction {

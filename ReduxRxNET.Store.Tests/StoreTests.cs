@@ -242,6 +242,34 @@ namespace ReduxRxNet.Store.Tests
       // receives inital state, and new state
       Assert.IsTrue(results.Count == 2, $"results contains {results.Count} elements instead of 2");
       Assert.AreEqual(results[0], ComplexObjectReducer.initialState);
+      Assert.AreNotEqual(results[1], ComplexObjectReducer.initialState);
+
+      sub.Dispose();
+    }
+
+    [TestMethod]
+    public void DispatchCombinedReducer_ClassNoInitialValue_ReceivesFromReducer()
+    {
+      //Arrange
+      var testId = 1;
+      var testValue = "pinkey";
+      var results = new List<CombinedObjectReducer.ApplicationState>();
+      var store = new Store<CombinedObjectReducer.ApplicationState>(new CombinedObjectReducer());
+
+
+      //Act
+      var sub = store.GetState().Subscribe(val => results.Add(val));
+      //make change in current slice
+      store.Dispatch(new CombinedObjectReducer.AddEntity1Action(testId, testValue));
+
+
+      //Assert
+      // receives inital state, and new state
+      Assert.IsTrue(results.Count == 2, $"results contains {results.Count} elements instead of 2");
+      Assert.AreEqual(results[0].UI, CombinedObjectReducer.UIReducer.initialState);
+      Assert.AreEqual(results[0].Data, CombinedObjectReducer.DataReducer.initialState);
+      Assert.AreEqual(results[1].UI, CombinedObjectReducer.UIReducer.initialState);
+      Assert.AreNotEqual(results[1].Data, CombinedObjectReducer.DataReducer.initialState);
 
       sub.Dispose();
     }
@@ -325,6 +353,72 @@ namespace ReduxRxNet.Store.Tests
       var sub = store.Select(state => state.Data.Entities1).Subscribe(val => results.Add(val));
       //make change in other slice
       store.Dispatch(new ComplexObjectReducer.AddEntity2Action(testId, testValue));
+
+
+      //Assert
+      // receives inital state, but no new state
+      Assert.IsTrue(results.Count == 1, $"results contains {results.Count} elements instead of 1");
+
+      sub.Dispose();
+    }
+
+    [TestMethod]
+    public void SelectCombinedReducer_DispatchOnCurrentSlice_ReceivesUpdate()
+    {
+      //Arrange
+      var initialValue = new CombinedObjectReducer.ApplicationState(
+        ui: new CombinedObjectReducer.UIState(isVisible: false),
+        data: new CombinedObjectReducer.DataState(
+           entities1: ImmutableSortedDictionary.Create<int, CombinedObjectReducer.Entitiy1>(),
+           entities2: ImmutableSortedDictionary.Create<int, CombinedObjectReducer.Entitiy2>()
+        )
+      );
+      var testId = 1;
+      var testValue = "pinkey";
+      var results = new List<ImmutableSortedDictionary<int, CombinedObjectReducer.Entitiy1>>();
+      var store = new Store<CombinedObjectReducer.ApplicationState>(new CombinedObjectReducer(), initialValue);
+
+
+      //Act
+      var sub = store.Select(state => state.Data.Entities1).Subscribe(val => results.Add(val));
+      //make change in current slice
+      store.Dispatch(new CombinedObjectReducer.AddEntity1Action(testId, testValue));
+
+
+      //Assert
+      // receives inital state, and new state
+      Assert.IsTrue(results.Count == 2, $"results contains {results.Count} elements instead of 2");
+      Assert.IsFalse(object.ReferenceEquals(results[0], results[1]));
+      Assert.IsTrue(results[1].Count == 1, $"entities1 contains {results[1].Count} elements instead of 1");
+
+      var entity1 = results[1].First().Value;
+      Assert.AreEqual(testId, entity1.Id);
+      Assert.AreEqual(testValue, entity1.Value);
+
+      sub.Dispose();
+    }
+
+    [TestMethod]
+    public void SelectCombinedReducer_DispatchOnOtherSlice_NoUpdate()
+    {
+      //Arrange
+      var initialValue = new CombinedObjectReducer.ApplicationState(
+        ui: new CombinedObjectReducer.UIState(isVisible: false),
+        data: new CombinedObjectReducer.DataState(
+           entities1: ImmutableSortedDictionary.Create<int, CombinedObjectReducer.Entitiy1>(),
+           entities2: ImmutableSortedDictionary.Create<int, CombinedObjectReducer.Entitiy2>()
+        )
+      );
+      var testId = 1;
+      var testValue = "pinkey";
+      var results = new List<ImmutableSortedDictionary<int, CombinedObjectReducer.Entitiy1>>();
+      var store = new Store<CombinedObjectReducer.ApplicationState>(new CombinedObjectReducer(), initialValue);
+
+
+      //Act
+      var sub = store.Select(state => state.Data.Entities1).Subscribe(val => results.Add(val));
+      //make change in other slice
+      store.Dispatch(new CombinedObjectReducer.AddEntity2Action(testId, testValue));
 
 
       //Assert

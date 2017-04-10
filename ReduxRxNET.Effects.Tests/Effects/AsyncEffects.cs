@@ -8,19 +8,32 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections;
 using System.Reactive.Threading.Tasks;
+using System.Threading;
 
 namespace ReduxRxNET.SideEffects.Tests.Effects
 {
   public static class AsyncEffects
   {
-    //[SideEffect(typeof(AsyncReducer.LoadAction))] //bad implementation
+    //[SideEffect(typeof(AsyncReducer.LoadAction))]
     //internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
     //{
     //  return actions
-    //   .Select(loadAction => GetDataAsync(shouldFail: false))
-    //   .Switch()
-    //   .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
-    //   .Catch(Observable.Return(new AsyncReducer.FailAction()));
+    //   .OfType<AsyncReducer.LoadAction>()
+    //   .Select(loadAction => GetDataAsync(loadAction.ShouldFail, loadAction.Flag).ToObservable()
+    //     .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
+    //     .Catch(Observable.Return(new AsyncReducer.FailAction())))
+    //   .Switch();
+    //}
+
+    //[SideEffect(typeof(AsyncReducer.LoadAction))]
+    //internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
+    //{
+    //  return actions
+    //   .OfType<AsyncReducer.LoadAction>()
+    //   .Select(loadAction => Observable.FromAsync(token => GetDataSupportsCancelAsync(loadAction.ShouldFail, loadAction.Flag, token))
+    //     .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
+    //     .Catch(Observable.Return(new AsyncReducer.FailAction())))
+    //   .Switch();
     //}
 
     [SideEffect(typeof(AsyncReducer.LoadAction))]
@@ -28,20 +41,65 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     {
       return actions
        .OfType<AsyncReducer.LoadAction>()
-       .Select(loadAction => GetDataAsync(loadAction.ShouldFail).ToObservable()
+       .Select(loadAction => GetDataSupportsCancel(loadAction.ShouldFail, loadAction.Flag)
          .Select<IEnumerable<int>, object>(data => new AsyncReducer.SuccessAction(data))
          .Catch(Observable.Return(new AsyncReducer.FailAction())))
        .Switch();
     }
 
-    private static async Task<IEnumerable<int>> GetDataAsync(bool shouldFail)
+    /// <summary>
+    /// cannot be cancelled, switch will not emit the result if a new call is made, but the async task will still continue
+    /// </summary>
+    /// <param name="shouldFail"></param>
+    /// <param name="flag"></param>
+    /// <returns></returns>
+    private static async Task<IEnumerable<int>> GetDataAsync(bool shouldFail, int flag)
     {
       await Task.Delay(TimeSpan.FromMilliseconds(100));
+      Trace.WriteLine($"async task {flag} done");
       if (shouldFail)
       {
         throw new Exception("GetDataAsync failed as requested");
       }
-      return new List<int> { 1, 8, 2 };
+      return new List<int> { flag, 1, 8, 2 };
+    }
+
+    /// <summary>
+    /// can be cancelled, switch will not emit the result if a new call is made, and the async task will be stopped
+    /// </summary>
+    /// <param name="shouldFail"></param>
+    /// <param name="flag">indicates which call is going on</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>task that can be cancelled</returns>
+    private static async Task<IEnumerable<int>> GetDataSupportsCancelAsync(bool shouldFail, int flag, CancellationToken cancellationToken)
+    {
+      await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
+      Trace.WriteLine($"async task {flag} done");
+      if (shouldFail)
+      {
+        throw new Exception("GetDataAsync failed as requested");
+      }
+      return new List<int> { flag, 1, 8, 2 };
+    }
+
+    /// <summary>
+    /// This one returns an observable directly
+    /// </summary>
+    /// <param name="shouldFail"></param>
+    /// <param name="flag">indicates which call is going on</param>
+    /// <returns>observable</returns>
+    private static IObservable<IEnumerable<int>> GetDataSupportsCancel(bool shouldFail, int flag)
+    {
+      return Observable.FromAsync(async token =>
+      {
+        await Task.Delay(TimeSpan.FromMilliseconds(100), token);
+        Trace.WriteLine($"async task {flag} done");
+        if (shouldFail)
+        {
+          throw new Exception("GetDataAsync failed as requested");
+        }
+        return new List<int> { flag, 1, 8, 2 };
+      });
     }
 
     internal class AsyncReducerApplicationStateComparer : IComparer
