@@ -28,7 +28,7 @@ namespace ReduxRxNET.SideEffects.Tests
       var effectsManager = new SideEffectsManager<int>();
       var store = new Store<int>(new IncrementReducer(), initialValue, effectsManager);
 
-      effectsManager.AddEffectsClass(typeof(IncrementEffects));
+      effectsManager.AddEffectsClass(new IncrementEffects());
       effectsManager.Start();
 
       var sub = store.GetState().Subscribe(val => results.Add(val));
@@ -51,7 +51,7 @@ namespace ReduxRxNET.SideEffects.Tests
       var effectsManager = new SideEffectsManager<int>();
       var store = new Store<int>(new IncrementReducer(), initialValue, effectsManager);
 
-      effectsManager.AddEffectsClass(typeof(IncrementEffects));
+      effectsManager.AddEffectsClass(new IncrementEffects());
       effectsManager.Start();
 
       var sub = store.GetState().Subscribe(val => results.Add(val));
@@ -88,7 +88,7 @@ namespace ReduxRxNET.SideEffects.Tests
       var effectsManager = new SideEffectsManager<AsyncReducer.ApplicationState>();
       var store = new Store<AsyncReducer.ApplicationState>(new AsyncReducer(), null, effectsManager);
 
-      effectsManager.AddEffectsClass(typeof(AsyncEffects));
+      effectsManager.AddEffectsClass(new AsyncEffects());
       effectsManager.Start();
 
       //completes after 3 elements, so we can await it
@@ -142,7 +142,7 @@ namespace ReduxRxNET.SideEffects.Tests
       var effectsManager = new SideEffectsManager<AsyncReducer.ApplicationState>();
       var store = new Store<AsyncReducer.ApplicationState>(new AsyncReducer(), null, effectsManager);
 
-      effectsManager.AddEffectsClass(typeof(AsyncEffects));
+      effectsManager.AddEffectsClass(new AsyncEffects());
       effectsManager.Start();
 
       //completes after 3 elements, so we can await it
@@ -204,7 +204,7 @@ namespace ReduxRxNET.SideEffects.Tests
       var effectsManager = new SideEffectsManager<AsyncReducer.ApplicationState>();
       var store = new Store<AsyncReducer.ApplicationState>(new AsyncReducer(), null, effectsManager);
 
-      effectsManager.AddEffectsClass(typeof(AsyncEffects));
+      effectsManager.AddEffectsClass(new AsyncEffects());
       effectsManager.Start();
 
       //completes after 3 elements, so we can await it
@@ -256,7 +256,7 @@ namespace ReduxRxNET.SideEffects.Tests
       var effectsManager = new SideEffectsManager<AsyncReducer.ApplicationState>();
       var store = new Store<AsyncReducer.ApplicationState>(new AsyncReducer(), null, effectsManager);
 
-      effectsManager.AddEffectsClass(typeof(AsyncEffects));
+      effectsManager.AddEffectsClass(new AsyncEffects());
       effectsManager.Start();
 
       //completes after 3 elements, so we can await it

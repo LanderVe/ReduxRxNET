@@ -12,10 +12,11 @@ using System.Threading;
 
 namespace ReduxRxNET.SideEffects.Tests.Effects
 {
-  public static class AsyncEffects
+  public class AsyncEffects
   {
     //[SideEffect(typeof(AsyncReducer.LoadAction))]
-    //internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
+    //[SideEffect]
+    //internal IObservable<object> OnLoadSuccess(IObservable<object> actions)
     //{
     //  return actions
     //   .OfType<AsyncReducer.LoadAction>()
@@ -26,7 +27,8 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     //}
 
     //[SideEffect(typeof(AsyncReducer.LoadAction))]
-    //internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
+    //[SideEffect]
+    //internal IObservable<object> OnLoadSuccess(IObservable<object> actions)
     //{
     //  return actions
     //   .OfType<AsyncReducer.LoadAction>()
@@ -36,8 +38,9 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     //   .Switch();
     //}
 
-    [SideEffect(typeof(AsyncReducer.LoadAction))]
-    internal static IObservable<object> OnLoadSuccess(IObservable<object> actions)
+    //[SideEffect(typeof(AsyncReducer.LoadAction))]
+    [SideEffect]
+    internal IObservable<object> OnLoadSuccess(IObservable<object> actions)
     {
       return actions
        .OfType<AsyncReducer.LoadAction>()
@@ -53,7 +56,7 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     /// <param name="shouldFail"></param>
     /// <param name="flag"></param>
     /// <returns></returns>
-    private static async Task<IEnumerable<int>> GetDataAsync(bool shouldFail, int flag)
+    private async Task<IEnumerable<int>> GetDataAsync(bool shouldFail, int flag)
     {
       await Task.Delay(TimeSpan.FromMilliseconds(100));
       Trace.WriteLine($"async task {flag} done");
@@ -71,7 +74,7 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     /// <param name="flag">indicates which call is going on</param>
     /// <param name="cancellationToken"></param>
     /// <returns>task that can be cancelled</returns>
-    private static async Task<IEnumerable<int>> GetDataSupportsCancelAsync(bool shouldFail, int flag, CancellationToken cancellationToken)
+    private async Task<IEnumerable<int>> GetDataSupportsCancelAsync(bool shouldFail, int flag, CancellationToken cancellationToken)
     {
       await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken);
       Trace.WriteLine($"async task {flag} done");
@@ -88,7 +91,7 @@ namespace ReduxRxNET.SideEffects.Tests.Effects
     /// <param name="shouldFail"></param>
     /// <param name="flag">indicates which call is going on</param>
     /// <returns>observable</returns>
-    private static IObservable<IEnumerable<int>> GetDataSupportsCancel(bool shouldFail, int flag)
+    private IObservable<IEnumerable<int>> GetDataSupportsCancel(bool shouldFail, int flag)
     {
       return Observable.FromAsync(async token =>
       {

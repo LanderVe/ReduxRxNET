@@ -77,7 +77,7 @@ namespace ReduxRxNET.SideEffects
       this.actions = dispatcher;
     }
 
-    public void AddEffectsClass(params Type[] types)
+    public void AddEffectsClass(params object[] input)
     {
       if (actions == null)
       {
@@ -86,7 +86,7 @@ namespace ReduxRxNET.SideEffects
 
       var ofTypeMethod = typeof(Observable).GetTypeInfo().GetDeclaredMethod("OfType");
 
-      var effects = ExtractEffectsFromType(types);
+      var effects = ExtractEffectsFromType(input);
       foreach (var effect in effects)
       {
         var notInSetYet = this.effectActions.Add(effect);
@@ -105,20 +105,23 @@ namespace ReduxRxNET.SideEffects
           {
             effectStream = effect.Delegate(actions);
           }
-          effectStreams.Add(effectStream);
+          if (effectStream != null)
+          {
+            effectStreams.Add(effectStream);
+          }
         }
       }
     }
 
-    private List<DelegateContainer> ExtractEffectsFromType(Type[] types)
+    private List<DelegateContainer> ExtractEffectsFromType(object[] inputs)
     {
-      var methods = from type in types
-                    from m in type.GetTypeInfo().DeclaredMethods
+      var methods = from input in inputs
+                    from m in input.GetType().GetTypeInfo().DeclaredMethods
                     from a in m.GetCustomAttributes<SideEffect>()
                     select new DelegateContainer
                     {
                       Type = a.Type,
-                      Delegate = m.CreateDelegate(typeof(SideEffectAction)) as SideEffectAction //turn into delegate, faster than reflection's Invoke
+                      Delegate = m.CreateDelegate(typeof(SideEffectAction), input) as SideEffectAction //turn into delegate, faster than reflection's Invoke
                     };
       return methods.ToList();
 
