@@ -88,14 +88,14 @@ namespace TestApp.Services
       });
     }
 
-    public IObservable<Contact> DeleteContact(int id)
+    public IObservable<int> DeleteContact(int id)
     {
       return Observable.FromAsync(async token =>
       {
         var response = await client.DeleteAsync($"api/contacts/${id}", token);
         if (response.IsSuccessStatusCode)
         {
-          return await response.Content.ReadAsAsync<Contact>();
+          return id;
         }
         else
         {

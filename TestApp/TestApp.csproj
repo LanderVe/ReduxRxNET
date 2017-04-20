@@ -96,6 +96,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Containers\ListViewModel.cs" />
     <Compile Include="Containers\MainView.xaml.cs">
       <DependentUpon>MainView.xaml</DependentUpon>
     </Compile>
@@ -106,8 +107,17 @@
     <Compile Include="Models\Contact.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ContactsApiClient.cs" />
+    <Compile Include="Services\LocalSearchService.cs" />
     <Compile Include="State\Actions\ListActions.cs" />
     <Compile Include="State\Actions\DataActions.cs" />
+    <Compile Include="State\Effects\DataSideEffects.cs" />
+    <Compile Include="State\Effects\ListSideEffects.cs" />
+    <Compile Include="State\Reducers\ApplicationReducer.cs" />
+    <Compile Include="State\Reducers\DataReducer.cs" />
+    <Compile Include="State\Reducers\FavoritesReducer.cs" />
+    <Compile Include="State\Reducers\ListReducer.cs" />
+    <Compile Include="State\Reducers\MainReducer.cs" />
+    <Compile Include="State\Shape\ApplicationState.cs" />
     <Compile Include="State\Shape\DataState.cs" />
     <Compile Include="State\Shape\FavoritesState.cs" />
     <Compile Include="State\Shape\ListState.cs" />
@@ -157,7 +167,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Controls\" />
-    <Folder Include="State\Reducers\" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

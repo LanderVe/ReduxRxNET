@@ -22,7 +22,15 @@ namespace TestApp.State.Actions
   internal class LoadContactsFailAction { }
 
 
-  internal class SaveNewContactAction { }
+  internal class SaveNewContactAction {
+    private readonly Contact contact;
+
+    public SaveNewContactAction(Contact contact)
+    {
+      this.contact = contact;
+    }
+    public Contact Contact => contact;
+  }
   internal class SaveNewContactSuccessAction
   {
     private readonly Contact contact;
@@ -36,7 +44,15 @@ namespace TestApp.State.Actions
   internal class SaveNewContactFailAction { }
 
 
-  internal class UpdateContactAction { }
+  internal class UpdateContactAction {
+    private readonly Contact contact;
+
+    public UpdateContactAction(Contact contact)
+    {
+      this.contact = contact;
+    }
+    public Contact Contact => contact;
+  }
   internal class UpdateContactSuccessAction
   {
     private readonly Contact contact;
@@ -50,7 +66,15 @@ namespace TestApp.State.Actions
   internal class UpdateContactFailAction { }
 
 
-  internal class DeleteContactAction { }
+  internal class DeleteContactAction {
+    private readonly int contactId;
+
+    public DeleteContactAction(int contactId)
+    {
+      this.contactId = contactId;
+    }
+    public int ContactId => contactId;
+  }
   internal class DeleteContactSuccessAction
   {
     private readonly int contactId;
@@ -61,7 +85,7 @@ namespace TestApp.State.Actions
     }
     public int ContactId => contactId;
   }
-  internal class DeleteContacFailAction { }
+  internal class DeleteContactFailAction { }
 
 
 }

@@ -63,13 +63,9 @@
     <controls:HamburgerMenu.ItemsSource>
       <controls:HamburgerMenuItemCollection>
         <controls:HamburgerMenuGlyphItem Glyph="/Assets/StoreLogo.png"
-                                                     Label="Big four summer heat" />
+                                                     Label="Contacts" />
         <controls:HamburgerMenuGlyphItem Glyph="/Assets/StoreLogo.png"
-                                                     Label="Bison badlands Chillin" />
-        <controls:HamburgerMenuGlyphItem Glyph="/Assets/StoreLogo.png"
-                                                     Label="Giant slab in Oregon" />
-        <controls:HamburgerMenuGlyphItem Glyph="/Assets/StoreLogo.png"
-                                                     Label="Lake Ann Mushroom" />
+                                                     Label="Favorites" />
       </controls:HamburgerMenuItemCollection>
     </controls:HamburgerMenu.ItemsSource>
 

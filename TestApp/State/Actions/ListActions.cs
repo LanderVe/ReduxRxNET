@@ -8,7 +8,15 @@ using TestApp.Models;
 
 namespace TestApp.State.Actions
 {
-  internal class SearchListAction { }
+  internal class SearchListAction {
+    private readonly string term;
+
+    public SearchListAction(string term)
+    {
+      this.term = term;
+    }
+    public string Term => term;
+  }
   internal class SearchListSuccessAction
   {
     private readonly ImmutableList<int> data;
@@ -21,12 +29,12 @@ namespace TestApp.State.Actions
   }
   internal class SearchListFailAction { }
 
-  internal class ListSelectItemAction
+  internal class SelectListItemAction
   {
     private readonly int selectedId;
     private readonly bool isNew;
 
-    public ListSelectItemAction(int selectedId, bool isNew)
+    public SelectListItemAction(int selectedId, bool isNew)
     {
       this.selectedId = selectedId;
       this.isNew = isNew;
